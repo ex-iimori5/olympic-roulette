@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>柔道 ゴールデンスコア抽選 — Paris 2024</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a3a6b;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: sans-serif;
+      gap: 1.5rem;
+      padding: 2rem 1rem;
+    }
+
+    .header-label {
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      color: #7fb3e8;
+      text-transform: uppercase;
+    }
+
+    .slot-window {
+      width: 360px;
+      height: 220px;
+      overflow: hidden;
+      position: relative;
+      mask-image: linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%);
+    }
+
+    .slot-track {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .slot-item {
+      height: 110px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 58px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      flex-shrink: 0;
+      width: 100%;
+      text-align: center;
+      color: #5bc8f5;
+    }
+
+    .slot-item.highlight {
+      color: #c792ea;
+    }
+
+    .center-line {
+      position: absolute;
+      top: 50%;
+      left: 5%;
+      right: 5%;
+      height: 1px;
+      background: rgba(255,255,255,0.12);
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .btn-spin {
+      padding: 14px 56px;
+      font-size: 16px;
+      font-weight: 500;
+      border-radius: 6px;
+      border: 1.5px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      transition: background 0.15s;
+    }
+    .btn-spin:hover { background: rgba(255,255,255,0.16); }
+    .btn-spin:active { transform: scale(0.97); }
+    .btn-spin:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .result-area {
+      min-height: 36px;
+      text-align: center;
+    }
+    .result-text {
+      font-size: 14px;
+      color: #7fb3e8;
+      opacity: 0;
+      transition: opacity 0.6s;
+    }
+    .result-text.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <div class="header-label">Golden Score Draw — Paris 2024</div>
+
+  <div class="slot-window">
+    <div class="center-line"></div>
+    <div class="slot-track" id="track"></div>
+  </div>
+
+  <button class="btn-spin" id="spinBtn" onclick="startSpin()">抽選開始</button>
+
+  <div class="result-area">
+    <div class="result-text" id="resultText"></div>
+  </div>
+
+  <script>
+    const categories = [
+      '-60 kg', '-66 kg', '-73 kg', '-81 kg', '-90 kg', '-100 kg', '+100 kg',
+      '-48 kg', '-52 kg', '-57 kg', '-63 kg', '-70 kg', '-78 kg', '+78 kg'
+    ];
+
+    const track = document.getElementById('track');
+    const itemHeight = 110;
+    let spinning = false;
+
+    function buildTrack(items) {
+      track.innerHTML = '';
+      items.forEach(cat => {
+        const div = document.createElement('div');
+        div.className = 'slot-item';
+        div.textContent = cat;
+        track.appendChild(div);
+      });
+    }
+
+    function setOffset(px) {
+      track.style.transform = `translateY(${-px}px)`;
+    }
+
+    function startSpin() {
+      if (spinning) return;
+      spinning = true;
+      document.getElementById('spinBtn').disabled = true;
+      document.getElementById('resultText').classList.remove('show');
+
+      const winnerIndex = Math.floor(Math.random() * categories.length);
+      const rounds = 6;
+      const repeated = [];
+      for (let r = 0; r < rounds + 1; r++) {
+        categories.forEach(c => repeated.push(c));
+      }
+
+      const targetIndexInRepeated = rounds * categories.length - categories.length + winnerIndex;
+      buildTrack(repeated);
+      setOffset(0);
+
+      const centerOffset = 55;
+      const targetPx = targetIndexInRepeated * itemHeight - centerOffset;
+      const duration = 3500;
+      const startTime = performance.now();
+
+      function ease(t) {
+        if (t < 0.5) return 4 * t * t * t;
+        return 1 - Math.pow(-2 * t + 2, 3) / 2;
+      }
+
+      function animate(now) {
+        const elapsed = now - startTime;
+        const t = Math.min(elapsed / duration, 1);
+        const px = targetPx * ease(t);
+        setOffset(px);
+
+        const visibleIdx = Math.round(px / itemHeight);
+        track.querySelectorAll('.slot-item').forEach((el, i) => {
+          el.classList.toggle('highlight', i === visibleIdx);
+        });
+
+        if (t < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          setOffset(targetPx);
+          track.querySelectorAll('.slot-item').forEach((el, i) => {
+            el.classList.toggle('highlight', i === targetIndexInRepeated);
+          });
+
+          spinning = false;
+          document.getElementById('spinBtn').disabled = false;
+          document.getElementById('spinBtn').textContent = 'もう一度';
+          const rt = document.getElementById('resultText');
+          rt.textContent = `抽選結果：${categories[winnerIndex]} 級`;
+          rt.classList.add('show');
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    buildTrack(categories);
+    setOffset(0);
+  </script>
+</body>
+</html>

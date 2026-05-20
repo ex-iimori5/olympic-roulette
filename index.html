@@ -342,7 +342,7 @@
     <div class="slot-track" id="track"></div>
   </div>
 
-  <button class="btn-spin" id="spinBtn" onclick="startSpin()">抽選開始</button>
+  <button class="btn-spin" id="spinBtn">抽選開始</button>
 
   <div class="overlay" id="overlay"></div>
   <aside class="panel" id="panel">
@@ -384,8 +384,16 @@
     let categories = settings.items.slice();
 
     const track = document.getElementById('track');
+    const slotWindow = document.querySelector('.slot-window');
     const itemHeight = 170;
-    let spinning = false;
+    const centerOffset = 85;
+    const SPIN_VELOCITY = 1.7;   // px/ms (≈10 items/sec)
+    const STOP_DURATION = 7000;  // ms (2x previous animation)
+
+    let phase = 'idle'; // 'idle' | 'spinning' | 'stopping' | 'stopped'
+    let pxOffset = 0;
+    let lastFrameTime = 0;
+    let stopState = null;
 
     function loadSettings() {
       try {
@@ -416,13 +424,56 @@
       track.style.transform = `translateY(${-px}px)`;
     }
 
-    function startSpin() {
-      if (spinning) return;
-      if (categories.length === 0) return;
-      spinning = true;
-      document.getElementById('spinBtn').disabled = true;
-      document.querySelector('.slot-window').classList.remove('stopped');
+    function applyHighlight(idx) {
+      track.querySelectorAll('.slot-item').forEach((el, i) => {
+        el.classList.toggle('highlight', i === idx);
+      });
+    }
 
+    function tick(now) {
+      if (phase === 'spinning') {
+        const dt = Math.min(now - lastFrameTime, 60);
+        lastFrameTime = now;
+        pxOffset += SPIN_VELOCITY * dt;
+        setOffset(pxOffset);
+        const idx = Math.round((pxOffset + centerOffset) / itemHeight);
+        applyHighlight(idx);
+        requestAnimationFrame(tick);
+      } else if (phase === 'stopping') {
+        const t = Math.min((now - stopState.startTime) / STOP_DURATION, 1);
+        const eased = 1 - Math.pow(1 - t, 3);
+        pxOffset = stopState.fromPx + (stopState.toPx - stopState.fromPx) * eased;
+        setOffset(pxOffset);
+        const idx = Math.round((pxOffset + centerOffset) / itemHeight);
+        applyHighlight(idx);
+        if (t < 1) {
+          requestAnimationFrame(tick);
+        } else {
+          setOffset(stopState.toPx);
+          applyHighlight(stopState.targetIdxInRepeated);
+          phase = 'stopped';
+          slotWindow.classList.add('stopped');
+          document.getElementById('spinBtn').textContent = 'もう一度';
+        }
+      }
+    }
+
+    function startContinuousSpin() {
+      if (categories.length === 0) return;
+      const rounds = 80;
+      const repeated = [];
+      for (let r = 0; r < rounds; r++) categories.forEach(c => repeated.push(c));
+      buildTrack(repeated);
+      pxOffset = 0;
+      setOffset(0);
+      slotWindow.classList.remove('stopped');
+      phase = 'spinning';
+      document.getElementById('spinBtn').textContent = 'ストップ';
+      lastFrameTime = performance.now();
+      requestAnimationFrame(tick);
+    }
+
+    function beginStop() {
       let winnerIndex;
       if (settings.rigged && categories.includes(settings.target)) {
         winnerIndex = categories.indexOf(settings.target);
@@ -430,54 +481,49 @@
         winnerIndex = Math.floor(Math.random() * categories.length);
       }
 
-      const rounds = 6;
-      const repeated = [];
-      for (let r = 0; r < rounds + 1; r++) {
-        categories.forEach(c => repeated.push(c));
-      }
+      const cycle = categories.length * itemHeight;
+      // easeOutCubic with duration D and distance d → initial velocity = 3d/D
+      // Match current velocity so deceleration is smooth.
+      const minDistance = SPIN_VELOCITY * STOP_DURATION / 3;
+      const minTotalPx = pxOffset + minDistance;
 
-      const targetIndexInRepeated = rounds * categories.length - categories.length + winnerIndex;
-      buildTrack(repeated);
-      setOffset(0);
-
-      const centerOffset = 85;
-      const targetPx = targetIndexInRepeated * itemHeight - centerOffset;
-      const duration = 3500;
-      const startTime = performance.now();
-
-      function ease(t) {
-        if (t < 0.5) return 4 * t * t * t;
-        return 1 - Math.pow(-2 * t + 2, 3) / 2;
-      }
-
-      function animate(now) {
-        const elapsed = now - startTime;
-        const t = Math.min(elapsed / duration, 1);
-        const px = targetPx * ease(t);
-        setOffset(px);
-
-        const visibleIdx = Math.round(px / itemHeight);
-        track.querySelectorAll('.slot-item').forEach((el, i) => {
-          el.classList.toggle('highlight', i === visibleIdx);
-        });
-
-        if (t < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          setOffset(targetPx);
-          track.querySelectorAll('.slot-item').forEach((el, i) => {
-            el.classList.toggle('highlight', i === targetIndexInRepeated);
-          });
-
-          spinning = false;
-          document.getElementById('spinBtn').disabled = false;
-          document.getElementById('spinBtn').textContent = 'もう一度';
-          document.querySelector('.slot-window').classList.add('stopped');
+      let targetPx = null;
+      let targetIdxInRepeated = 0;
+      const repeatedLen = track.children.length;
+      for (let j = 0; j < 500; j++) {
+        const idxInRepeated = j * categories.length + winnerIndex;
+        if (idxInRepeated >= repeatedLen) break;
+        const candidate = idxInRepeated * itemHeight - centerOffset;
+        if (candidate >= minTotalPx) {
+          targetPx = candidate;
+          targetIdxInRepeated = idxInRepeated;
+          break;
         }
       }
+      if (targetPx === null) {
+        // fall back: jump nearest winner ahead (shouldn't happen with rounds=80)
+        targetIdxInRepeated = repeatedLen - categories.length + winnerIndex;
+        targetPx = targetIdxInRepeated * itemHeight - centerOffset;
+      }
 
-      requestAnimationFrame(animate);
+      stopState = {
+        startTime: performance.now(),
+        fromPx: pxOffset,
+        toPx: targetPx,
+        targetIdxInRepeated
+      };
+      phase = 'stopping';
     }
+
+    function handleSpinClick() {
+      if (phase === 'idle' || phase === 'stopped') {
+        startContinuousSpin();
+      } else if (phase === 'spinning') {
+        beginStop();
+      }
+    }
+
+    document.getElementById('spinBtn').addEventListener('click', handleSpinClick);
 
     // ===== Settings panel =====
     const hamburgerBtn = document.getElementById('hamburgerBtn');
@@ -602,8 +648,10 @@
       saveSettings();
       categories = settings.items.slice();
       buildTrack(categories);
+      pxOffset = 0;
       setOffset(0);
-      document.querySelector('.slot-window').classList.remove('stopped');
+      slotWindow.classList.remove('stopped');
+      phase = 'idle';
       document.getElementById('spinBtn').textContent = '抽選開始';
       closePanel();
     });

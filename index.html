@@ -17,6 +17,7 @@
       font-family: sans-serif;
       gap: 1.5rem;
       padding: 2rem 1rem;
+      color: #fff;
     }
 
     .header-label {
@@ -97,9 +98,237 @@
       transition: opacity 0.6s;
     }
     .result-text.show { opacity: 1; }
+
+    /* Hamburger button */
+    .hamburger {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.2);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      z-index: 20;
+      transition: background 0.15s;
+    }
+    .hamburger:hover { background: rgba(255,255,255,0.16); }
+    .hamburger span {
+      display: block;
+      width: 20px;
+      height: 2px;
+      background: #fff;
+      border-radius: 2px;
+    }
+
+    /* Overlay */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 30;
+    }
+    .overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Panel */
+    .panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 360px;
+      max-width: 90vw;
+      height: 100%;
+      background: #122b4f;
+      box-shadow: -4px 0 24px rgba(0,0,0,0.4);
+      transform: translateX(100%);
+      transition: transform 0.25s ease-out;
+      z-index: 40;
+      display: flex;
+      flex-direction: column;
+      color: #fff;
+    }
+    .panel.open { transform: translateX(0); }
+
+    .panel-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .panel-header h2 {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .panel-close {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 4px;
+    }
+
+    .panel-body {
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .section {
+      margin-bottom: 24px;
+    }
+    .section-title {
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      color: #7fb3e8;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .item-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .item-row input {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      font-size: 14px;
+    }
+    .item-row input:focus {
+      outline: none;
+      border-color: #5bc8f5;
+    }
+    .btn-remove {
+      width: 32px;
+      background: rgba(255,80,80,0.15);
+      border: 1px solid rgba(255,80,80,0.3);
+      color: #ff9090;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .btn-remove:hover { background: rgba(255,80,80,0.25); }
+
+    .btn-add {
+      width: 100%;
+      padding: 8px;
+      margin-top: 6px;
+      border-radius: 4px;
+      border: 1px dashed rgba(255,255,255,0.25);
+      background: transparent;
+      color: #7fb3e8;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn-add:hover {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(255,255,255,0.4);
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+    }
+    .toggle-row label {
+      font-size: 14px;
+    }
+    .switch {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 11px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .switch.on { background: #5bc8f5; }
+    .switch::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 18px;
+      height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.15s;
+    }
+    .switch.on::after { transform: translateX(18px); }
+
+    .select-target {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+    .select-target:disabled { opacity: 0.4; }
+
+    .help-text {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .panel-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      gap: 8px;
+    }
+    .btn-save, .btn-reset {
+      flex: 1;
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .btn-save {
+      background: #5bc8f5;
+      color: #0a1e3a;
+      border-color: #5bc8f5;
+      font-weight: 600;
+    }
+    .btn-save:hover { background: #7fd5f8; }
+    .btn-reset {
+      background: transparent;
+      color: #fff;
+    }
+    .btn-reset:hover { background: rgba(255,255,255,0.06); }
   </style>
 </head>
 <body>
+
+  <button class="hamburger" id="hamburgerBtn" aria-label="メニュー">
+    <span></span><span></span><span></span>
+  </button>
 
   <div class="header-label">Golden Score Draw — Paris 2024</div>
 
@@ -114,15 +343,63 @@
     <div class="result-text" id="resultText"></div>
   </div>
 
+  <div class="overlay" id="overlay"></div>
+  <aside class="panel" id="panel">
+    <div class="panel-header">
+      <h2>設定</h2>
+      <button class="panel-close" id="closeBtn" aria-label="閉じる">×</button>
+    </div>
+    <div class="panel-body">
+      <div class="section">
+        <div class="section-title">ルーレット項目</div>
+        <div id="itemsList"></div>
+        <button class="btn-add" id="addItemBtn">+ 項目を追加</button>
+      </div>
+
+      <div class="section">
+        <div class="section-title">結果を固定</div>
+        <div class="toggle-row">
+          <label for="riggedSwitch">固定モード</label>
+          <div class="switch" id="riggedSwitch" role="switch" aria-checked="false" tabindex="0"></div>
+        </div>
+        <select class="select-target" id="targetSelect" disabled></select>
+        <div class="help-text">オンにすると、ルーレットは必ず指定した項目に停止します。</div>
+      </div>
+    </div>
+    <div class="panel-footer">
+      <button class="btn-reset" id="resetBtn">初期値に戻す</button>
+      <button class="btn-save" id="saveBtn">保存して適用</button>
+    </div>
+  </aside>
+
   <script>
-    const categories = [
+    const DEFAULT_CATEGORIES = [
       '-60 kg', '-66 kg', '-73 kg', '-81 kg', '-90 kg', '-100 kg', '+100 kg',
       '-48 kg', '-52 kg', '-57 kg', '-63 kg', '-70 kg', '-78 kg', '+78 kg'
     ];
+    const STORAGE_KEY = 'rouletteSettings';
+
+    let settings = loadSettings();
+    let categories = settings.items.slice();
 
     const track = document.getElementById('track');
     const itemHeight = 110;
     let spinning = false;
+
+    function loadSettings() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const s = JSON.parse(raw);
+          if (Array.isArray(s.items) && s.items.length > 0) return s;
+        }
+      } catch (e) {}
+      return { items: DEFAULT_CATEGORIES.slice(), rigged: false, target: DEFAULT_CATEGORIES[0] };
+    }
+
+    function saveSettings() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    }
 
     function buildTrack(items) {
       track.innerHTML = '';
@@ -140,11 +417,18 @@
 
     function startSpin() {
       if (spinning) return;
+      if (categories.length === 0) return;
       spinning = true;
       document.getElementById('spinBtn').disabled = true;
       document.getElementById('resultText').classList.remove('show');
 
-      const winnerIndex = Math.floor(Math.random() * categories.length);
+      let winnerIndex;
+      if (settings.rigged && categories.includes(settings.target)) {
+        winnerIndex = categories.indexOf(settings.target);
+      } else {
+        winnerIndex = Math.floor(Math.random() * categories.length);
+      }
+
       const rounds = 6;
       const repeated = [];
       for (let r = 0; r < rounds + 1; r++) {
@@ -188,13 +472,151 @@
           document.getElementById('spinBtn').disabled = false;
           document.getElementById('spinBtn').textContent = 'もう一度';
           const rt = document.getElementById('resultText');
-          rt.textContent = `抽選結果：${categories[winnerIndex]} 級`;
+          rt.textContent = `抽選結果：${categories[winnerIndex]}`;
           rt.classList.add('show');
         }
       }
 
       requestAnimationFrame(animate);
     }
+
+    // ===== Settings panel =====
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const closeBtn = document.getElementById('closeBtn');
+    const overlay = document.getElementById('overlay');
+    const panel = document.getElementById('panel');
+    const itemsList = document.getElementById('itemsList');
+    const addItemBtn = document.getElementById('addItemBtn');
+    const riggedSwitch = document.getElementById('riggedSwitch');
+    const targetSelect = document.getElementById('targetSelect');
+    const saveBtn = document.getElementById('saveBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    let draftItems = [];
+    let draftRigged = false;
+    let draftTarget = '';
+
+    function openPanel() {
+      draftItems = settings.items.slice();
+      draftRigged = settings.rigged;
+      draftTarget = settings.target;
+      renderItemsList();
+      renderRigged();
+      panel.classList.add('open');
+      overlay.classList.add('open');
+    }
+
+    function closePanel() {
+      panel.classList.remove('open');
+      overlay.classList.remove('open');
+    }
+
+    function renderItemsList() {
+      itemsList.innerHTML = '';
+      draftItems.forEach((item, idx) => {
+        const row = document.createElement('div');
+        row.className = 'item-row';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = item;
+        input.addEventListener('input', (e) => {
+          draftItems[idx] = e.target.value;
+          renderTargetOptions();
+        });
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'btn-remove';
+        removeBtn.textContent = '×';
+        removeBtn.title = '削除';
+        removeBtn.addEventListener('click', () => {
+          draftItems.splice(idx, 1);
+          renderItemsList();
+          renderTargetOptions();
+        });
+
+        row.appendChild(input);
+        row.appendChild(removeBtn);
+        itemsList.appendChild(row);
+      });
+    }
+
+    function renderRigged() {
+      riggedSwitch.classList.toggle('on', draftRigged);
+      riggedSwitch.setAttribute('aria-checked', String(draftRigged));
+      targetSelect.disabled = !draftRigged;
+      renderTargetOptions();
+    }
+
+    function renderTargetOptions() {
+      const cleanItems = draftItems.map(s => s.trim()).filter(Boolean);
+      targetSelect.innerHTML = '';
+      cleanItems.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item;
+        opt.textContent = item;
+        if (item === draftTarget) opt.selected = true;
+        targetSelect.appendChild(opt);
+      });
+      if (!cleanItems.includes(draftTarget) && cleanItems.length > 0) {
+        draftTarget = cleanItems[0];
+        targetSelect.value = draftTarget;
+      }
+    }
+
+    hamburgerBtn.addEventListener('click', openPanel);
+    closeBtn.addEventListener('click', closePanel);
+    overlay.addEventListener('click', closePanel);
+
+    addItemBtn.addEventListener('click', () => {
+      draftItems.push('');
+      renderItemsList();
+      const inputs = itemsList.querySelectorAll('input');
+      if (inputs.length > 0) inputs[inputs.length - 1].focus();
+    });
+
+    riggedSwitch.addEventListener('click', () => {
+      draftRigged = !draftRigged;
+      renderRigged();
+    });
+    riggedSwitch.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        draftRigged = !draftRigged;
+        renderRigged();
+      }
+    });
+
+    targetSelect.addEventListener('change', (e) => {
+      draftTarget = e.target.value;
+    });
+
+    saveBtn.addEventListener('click', () => {
+      const cleanItems = draftItems.map(s => s.trim()).filter(Boolean);
+      if (cleanItems.length === 0) {
+        alert('項目を1つ以上設定してください。');
+        return;
+      }
+      settings.items = cleanItems;
+      settings.rigged = draftRigged;
+      settings.target = cleanItems.includes(draftTarget) ? draftTarget : cleanItems[0];
+      saveSettings();
+      categories = settings.items.slice();
+      buildTrack(categories);
+      setOffset(0);
+      document.getElementById('resultText').classList.remove('show');
+      document.getElementById('spinBtn').textContent = '抽選開始';
+      closePanel();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      if (!confirm('初期値に戻しますか？')) return;
+      draftItems = DEFAULT_CATEGORIES.slice();
+      draftRigged = false;
+      draftTarget = DEFAULT_CATEGORIES[0];
+      renderItemsList();
+      renderRigged();
+    });
 
     buildTrack(categories);
     setOffset(0);

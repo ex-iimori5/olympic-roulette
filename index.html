@@ -21,19 +21,24 @@
     }
 
     .header-label {
-      font-size: 13px;
-      letter-spacing: 0.12em;
+      font-size: 18px;
+      letter-spacing: 0.14em;
       color: #7fb3e8;
       text-transform: uppercase;
     }
 
     .slot-window {
-      width: 360px;
-      height: 220px;
+      width: min(620px, 92vw);
+      height: 340px;
       overflow: hidden;
       position: relative;
       mask-image: linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%);
       -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%);
+      transition: mask-image 0.4s, -webkit-mask-image 0.4s;
+    }
+    .slot-window.stopped {
+      mask-image: none;
+      -webkit-mask-image: none;
     }
 
     .slot-track {
@@ -43,21 +48,32 @@
     }
 
     .slot-item {
-      height: 110px;
+      height: 170px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 58px;
+      font-size: 92px;
       font-weight: 700;
       letter-spacing: -0.02em;
       flex-shrink: 0;
       width: 100%;
       text-align: center;
       color: #5bc8f5;
+      transition: font-size 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                  color 0.3s,
+                  opacity 0.35s;
     }
 
     .slot-item.highlight {
       color: #c792ea;
+    }
+
+    .slot-window.stopped .slot-item {
+      opacity: 0;
+    }
+    .slot-window.stopped .slot-item.highlight {
+      opacity: 1;
+      font-size: 140px;
     }
 
     .center-line {
@@ -72,32 +88,21 @@
     }
 
     .btn-spin {
-      padding: 14px 56px;
-      font-size: 16px;
+      padding: 20px 72px;
+      font-size: 22px;
       font-weight: 500;
-      border-radius: 6px;
+      border-radius: 8px;
       border: 1.5px solid rgba(255,255,255,0.3);
       background: rgba(255,255,255,0.08);
       color: #fff;
       cursor: pointer;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.08em;
       transition: background 0.15s;
     }
     .btn-spin:hover { background: rgba(255,255,255,0.16); }
     .btn-spin:active { transform: scale(0.97); }
     .btn-spin:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    .result-area {
-      min-height: 36px;
-      text-align: center;
-    }
-    .result-text {
-      font-size: 14px;
-      color: #7fb3e8;
-      opacity: 0;
-      transition: opacity 0.6s;
-    }
-    .result-text.show { opacity: 1; }
 
     /* Hamburger button */
     .hamburger {
@@ -339,10 +344,6 @@
 
   <button class="btn-spin" id="spinBtn" onclick="startSpin()">抽選開始</button>
 
-  <div class="result-area">
-    <div class="result-text" id="resultText"></div>
-  </div>
-
   <div class="overlay" id="overlay"></div>
   <aside class="panel" id="panel">
     <div class="panel-header">
@@ -383,7 +384,7 @@
     let categories = settings.items.slice();
 
     const track = document.getElementById('track');
-    const itemHeight = 110;
+    const itemHeight = 170;
     let spinning = false;
 
     function loadSettings() {
@@ -420,7 +421,7 @@
       if (categories.length === 0) return;
       spinning = true;
       document.getElementById('spinBtn').disabled = true;
-      document.getElementById('resultText').classList.remove('show');
+      document.querySelector('.slot-window').classList.remove('stopped');
 
       let winnerIndex;
       if (settings.rigged && categories.includes(settings.target)) {
@@ -439,7 +440,7 @@
       buildTrack(repeated);
       setOffset(0);
 
-      const centerOffset = 55;
+      const centerOffset = 85;
       const targetPx = targetIndexInRepeated * itemHeight - centerOffset;
       const duration = 3500;
       const startTime = performance.now();
@@ -471,9 +472,7 @@
           spinning = false;
           document.getElementById('spinBtn').disabled = false;
           document.getElementById('spinBtn').textContent = 'もう一度';
-          const rt = document.getElementById('resultText');
-          rt.textContent = `抽選結果：${categories[winnerIndex]}`;
-          rt.classList.add('show');
+          document.querySelector('.slot-window').classList.add('stopped');
         }
       }
 
@@ -604,7 +603,7 @@
       categories = settings.items.slice();
       buildTrack(categories);
       setOffset(0);
-      document.getElementById('resultText').classList.remove('show');
+      document.querySelector('.slot-window').classList.remove('stopped');
       document.getElementById('spinBtn').textContent = '抽選開始';
       closePanel();
     });

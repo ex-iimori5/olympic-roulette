@@ -434,7 +434,7 @@
       if (phase === 'spinning') {
         const dt = Math.min(now - lastFrameTime, 60);
         lastFrameTime = now;
-        pxOffset += SPIN_VELOCITY * dt;
+        pxOffset -= SPIN_VELOCITY * dt;
         setOffset(pxOffset);
         const idx = Math.round((pxOffset + centerOffset) / itemHeight);
         applyHighlight(idx);
@@ -464,8 +464,9 @@
       const repeated = [];
       for (let r = 0; r < rounds; r++) categories.forEach(c => repeated.push(c));
       buildTrack(repeated);
-      pxOffset = 0;
-      setOffset(0);
+      // Start near the end so we can scroll backward (visually downward).
+      pxOffset = Math.floor(rounds * 0.75) * categories.length * itemHeight;
+      setOffset(pxOffset);
       slotWindow.classList.remove('stopped');
       phase = 'spinning';
       document.getElementById('spinBtn').textContent = 'ストップ';
@@ -481,28 +482,26 @@
         winnerIndex = Math.floor(Math.random() * categories.length);
       }
 
-      const cycle = categories.length * itemHeight;
       // easeOutCubic with duration D and distance d → initial velocity = 3d/D
-      // Match current velocity so deceleration is smooth.
+      // Match current spin velocity so deceleration is smooth.
       const minDistance = SPIN_VELOCITY * STOP_DURATION / 3;
-      const minTotalPx = pxOffset + minDistance;
+      const maxTotalPx = pxOffset - minDistance;
 
       let targetPx = null;
       let targetIdxInRepeated = 0;
-      const repeatedLen = track.children.length;
-      for (let j = 0; j < 500; j++) {
+      const startJ = Math.floor(pxOffset / (categories.length * itemHeight));
+      for (let j = startJ; j >= 0; j--) {
         const idxInRepeated = j * categories.length + winnerIndex;
-        if (idxInRepeated >= repeatedLen) break;
         const candidate = idxInRepeated * itemHeight - centerOffset;
-        if (candidate >= minTotalPx) {
+        if (candidate <= maxTotalPx) {
           targetPx = candidate;
           targetIdxInRepeated = idxInRepeated;
           break;
         }
       }
       if (targetPx === null) {
-        // fall back: jump nearest winner ahead (shouldn't happen with rounds=80)
-        targetIdxInRepeated = repeatedLen - categories.length + winnerIndex;
+        // fall back (shouldn't happen with rounds=80 start at 0.75)
+        targetIdxInRepeated = winnerIndex;
         targetPx = targetIdxInRepeated * itemHeight - centerOffset;
       }
 
